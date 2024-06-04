@@ -1,0 +1,27 @@
+{% load static %}
+<html>
+   <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Homepage</title>
+      <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+
+   </head>
+   <body>
+      {% include 'tagsapp/navbar.html' %}
+      <main>
+         <section style="width:60%; margin: 0 auto;">
+            <h1>Welcome to social media analysis application!</h1>
+            <p style="font-size:24">Application provides you with a unique opportunity to explore and analyze current trends on social networks, as well as receive valuable recommendations based on collected data.</p>
+            <p><strong>What we offer?</strong></p>
+            <p>Trend Analysis: We allow you to keep track of the hottest topics and discussions on various social networks so you're always up to date with the latest events.</p>
+            <p>Deep Data Analysis: Our application conducts in-depth data analysis to identify key trends, sentiments, and discussions in social media.</p>
+            <p>Ease of Use: Our application is designed with convenience and ease of use in mind, making it accessible to a wide range of users.</p>
+            <p><strong>How to get started?</strong></p>
+            <p>Simply register and log in to your account to start using all the features of our application. From there, you'll be able to browse trends, analyze data, and receive recommendations to stay ahead.</p>
+            <p>Don't miss out on the opportunity to stay informed about everything happening on social networks. Join us now and start using our social media analysis application!</p>
+            <a href="login" class="btn">Try now</a>
+         </section>
+      </main>
+   </body>
+</html>

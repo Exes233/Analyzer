@@ -1,0 +1,181 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+{% include 'tagsapp/navbar.html' %}
+<body>
+{% csrf_token %}
+<main>
+<section>
+<h1>Dashboard</h1>
+
+
+<div id="social-network-selector" class="social-network-selector">
+    <input type="checkbox" id="reddit" name="social_network" value="reddit">
+    <label for="reddit"><i class="fa-brands fa-square-reddit"></i></label>
+    <input type="checkbox" id="x" name="social_network" value="x">
+    <label for="x"><i class="fab fa-square-x-twitter"></i></label>
+    <input type="checkbox" id="facebook" name="social_network" value="facebook">
+    <label for="facebook"><i class="fab fa-facebook-square"></i></label>
+</div>
+<form id="dashboard-form" class="form-class" style="display:none;">
+    <div class="form-group">
+        <label for="content-category">Topic</label>
+        <select id="content-category" name="content_category">
+            <option value="politics">Politics</option>
+            <option value="Python">Python</option>
+            <option value="news">News</option>
+            <option value="sports">Sports</option>
+            <option value="programming">Programming</option>
+            <option value="science">Science</option>
+            <option value="cars">Cars</option>
+            <option value="memes">Memes</option>
+        </select>
+    </div>
+
+    <div class="form-group" id="metric-group">
+        <label for="metric-type">Metric</label>
+        <select id="metric-type" name="metric_type">
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="tag-count">Maximum Number of Tags: <span id="tag-count-value">5</span></label>
+        <input type="range" id="tag-count" name="tag_count" min="3" max="20" value="5">
+    </div>
+
+    <button type="button" id="generate-chart" class="btn">Create Chart</button>
+</form>
+ 
+<div id="chart-container" style="width: 70%; height: 500px; margin: 20px auto;">
+   <canvas id="myChart"></canvas>
+</div>
+
+<script
+src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js">
+</script>
+<script>
+
+   document.getElementById('generate-chart').addEventListener('click', function() {
+      
+    var socialNetwork = document.querySelector('input[name="social_network"]:checked').value;
+
+    var formData = new FormData();
+    formData.append('social_network', socialNetwork);
+
+    var form = document.getElementById('dashboard-form');
+    var otherFormData = new FormData(form);
+    for (var pair of otherFormData.entries()) {
+        formData.append(pair[0], pair[1]);
+    }
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'generate-chart', true);
+    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+    var csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+    xhr.setRequestHeader('X-CSRFToken', csrfToken);
+
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+            var response = JSON.parse(xhr.responseText);
+            updateChart(response);
+        }
+    };
+    xhr.send(formData);
+  });
+  document.getElementById('tag-count').addEventListener('input', function() {
+    var tagCountValue = document.getElementById('tag-count').value;
+    document.getElementById('tag-count-value').textContent = tagCountValue;
+});
+  function updateChart(chartData) {
+   var chartContainer = document.getElementById('chart-container');
+
+   chartContainer.innerHTML = '';
+
+   var canvas = document.createElement('canvas');
+   chartContainer.appendChild(canvas);
+
+   var ctx = canvas.getContext('2d');
+
+   new Chart(ctx, {
+       type: 'bar', 
+       data: {
+           labels: chartData.labels, 
+           datasets: [{
+               label: chartData.metric_type, 
+               data: chartData.data, 
+               backgroundColor: 'rgba(75, 192, 192, 0.2)', 
+               borderColor: 'rgba(75, 192, 192, 1)', 
+               borderWidth: 1 
+           }]
+       },
+       options: {
+        responsive: true,
+        maintainAspectRatio: false, 
+        scales: {
+            xAxes: [{
+                scaleLabel: {
+                    display: true,
+                    labelString: 'Tags'
+                }
+            }],
+            yAxes: [{
+                scaleLabel: {
+                    display: true,
+                    labelString: chartData.metric_type
+                }
+            }]
+        }
+    }
+   });
+ }
+ document.querySelectorAll('input[name="social_network"]').forEach(function(checkbox) {
+    checkbox.addEventListener('change', function() {
+        var settingsForm = document.getElementById('dashboard-form');
+        if (checkbox.checked) {
+            settingsForm.style.display = 'block';
+            updateMetricsOptions(checkbox.value); 
+        } else {
+            settingsForm.style.display = 'none';
+        }
+        if (checkbox.checked) {
+            document.querySelectorAll('input[name="social_network"]').forEach(function(otherCheckbox) {
+                if (otherCheckbox !== checkbox) {
+                    otherCheckbox.checked = false;
+                }
+            });
+        }
+    });
+});
+
+function updateMetricsOptions(socialNetwork) {
+    var metricGroup = document.getElementById('metric-group');
+    var metricSelect = document.getElementById('metric-type');
+    metricSelect.innerHTML = ''; 
+
+    var metrics = [];
+    if (socialNetwork === 'reddit') {
+        metrics = ['relative_attraction', 'mentions', 'upvotes', 'comments'];
+    } else if (socialNetwork === 'x') {
+        metrics = ['relative_attraction', 'mentions', 'retweets', 'quotes', 'views'];
+    }
+
+    metrics.forEach(function(metric) {
+        var option = document.createElement('option');
+        option.value = metric;
+        option.textContent = metric.replace('_', ' '); 
+        metricSelect.appendChild(option);
+    });
+}
+   </script>
+</main>
+</section>
+</body>
+</html>

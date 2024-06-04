@@ -1,0 +1,47 @@
+{% load static %}
+<html>
+   <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Log in</title>
+      <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+   </head>
+   {% include 'tagsapp/navbar.html' %}
+   <main>
+      <section>
+         <h1>Log in</h1>
+         <form method="POST" autocomplete="off" class="form-class">
+            {% csrf_token %}
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-success" role="alert">
+               {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% if loginform.non_field_errors %}
+            <div class="error-container">
+            <div class="error-message">
+            {% for error in loginform.non_field_errors %}
+            <p>{{ error }}</p>
+            {% endfor %}
+            </div>
+            </div>
+            {% endif %}
+        
+            <div class="form-group">
+                <label for="{{ loginform.username.id_for_label }}">Username:</label>
+                {{ loginform.username }}
+            </div>
+        
+            <div class="form-group">
+                <label for="{{ loginform.password.id_for_label }}">Password:</label>
+                {{ loginform.password }}
+            </div>
+        
+            <input type="submit" value="Login" class="input-class">
+            <a href="{% url 'register' %}">Register</a>
+         </form>
+      </section>
+   </main>
+</html>
